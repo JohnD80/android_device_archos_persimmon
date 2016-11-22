@@ -1,9 +1,9 @@
-From 610283f14ad27ad00197cbedf21c98c77b5eb3f7 Mon Sep 17 00:00:00 2001
+From 93573bf817b8aa8a9871a20574bf7443b4d1ac5c Mon Sep 17 00:00:00 2001
 From: olegsvs <oleg.texet@gmail.com>
-Date: Sun, 12 Jun 2016 13:18:27 -0400
-Subject: [PATCH] Patch for 6735 mtk
+Date: Tue, 22 Nov 2016 21:01:17 +0000
+Subject: [PATCH] mt6735
 
-Change-Id: I76b27b3febfa9c97619284da4653570cae77671f
+Change-Id: I95c7dd52d1bb34ae1674f874f189e6a114da3bde
 ---
  core/java/com/mediatek/xlog/Xlog.java              | 123 ++++++++
  core/jni/android_media_AudioSystem.cpp             |  40 +++
@@ -11,6 +11,7 @@ Change-Id: I76b27b3febfa9c97619284da4653570cae77671f
  .../java/android/location/IGpsStatusListener.aidl  |   5 +
  .../java/android/location/LocationManager.java     |  25 ++
  media/java/android/media/AudioSystem.java          |   3 +
+ media/java/android/media/RemoteController.java     |  94 +++---
  .../server/location/GpsLocationProvider.java       |  86 +++++-
  .../server/location/GpsStatusListenerHelper.java   |  26 ++
  ...android_server_location_GpsLocationProvider.cpp |  90 +++++-
@@ -22,7 +23,7 @@ Change-Id: I76b27b3febfa9c97619284da4653570cae77671f
  .../android/internal/telephony/RILConstants.java   | 324 ++++++++++++++++++++-
  .../internal/telephony/TelephonyIntents.java       | 255 ++++++++++++++++
  .../internal/telephony/TelephonyProperties.java    |  35 +++
- 17 files changed, 1653 insertions(+), 10 deletions(-)
+ 18 files changed, 1708 insertions(+), 49 deletions(-)
  create mode 100755 core/java/com/mediatek/xlog/Xlog.java
  create mode 100755 telephony/java/android/telephony/PhoneRatFamily.aidl
  create mode 100755 telephony/java/android/telephony/PhoneRatFamily.java
@@ -325,6 +326,179 @@ index bf79e9a..50b94ae 100644
 +    public static native int getAudioData(int par, int size, byte[] data);
 +    public static native int setAudioData(int par, int size, byte[] data);
  }
+ 
+diff --git a/media/java/android/media/RemoteController.java b/media/java/android/media/RemoteController.java
+index a4b445a..06d53d0 100644
+--- a/media/java/android/media/RemoteController.java
++++ b/media/java/android/media/RemoteController.java
+@@ -88,6 +88,7 @@ import java.util.List;
+     private boolean mIsRegistered = false;
+     private PendingIntent mClientPendingIntentCurrent;
+     private OnClientUpdateListener mOnClientUpdateListener;
++    private OnClientAvrcpUpdateListener mOnClientAvrcpUpdateListener;
+     private PlaybackInfo mLastPlaybackInfo;
+     private int mArtworkWidth = -1;
+     private int mArtworkHeight = -1;
+@@ -150,12 +151,31 @@ import java.util.List;
+         }
+     }
+ 
++    /**
++     * @hide
++     */
++    public RemoteController(Context context, OnClientUpdateListener updateListener, Looper looper,
++            OnClientAvrcpUpdateListener avrcpUpdateListener) throws IllegalArgumentException {
++        this(context, updateListener, looper);
++        mOnClientAvrcpUpdateListener = avrcpUpdateListener;
++    }
+ 
+     /**
+-     * Interface definition for the callbacks to be invoked whenever media events, metadata
+-     * and playback status are available.
++     * @hide
+      */
++    public interface OnClientAvrcpUpdateListener {
++        public void onClientFolderInfoBrowsedPlayer(String stringUri);
++        public void onClientUpdateNowPlayingEntries(long[] playList);
++        public void onClientNowPlayingContentChange();
++        public void onClientPlayItemResponse(boolean success);
++    };
++
++    /**
++    * Interface definition for the callbacks to be invoked whenever media events, metadata
++    * and playback status are available.
++    */
+     public interface OnClientUpdateListener {
++
+         /**
+          * Called whenever all information, previously received through the other
+          * methods of the listener, is no longer valid and is about to be refreshed.
+@@ -165,7 +185,6 @@ import java.util.List;
+          *     is available.
+          */
+         public void onClientChange(boolean clearing);
+-
+         /**
+          * Called whenever the playback state has changed.
+          * It is called when no information is known about the playback progress in the media and
+@@ -206,26 +225,6 @@ import java.util.List;
+          */
+         public void onClientMetadataUpdate(MetadataEditor metadataEditor);
+ 
+-        /**
+-         * @hide
+-         */
+-        public void onClientFolderInfoBrowsedPlayer(String stringUri);
+-
+-        /**
+-         * @hide
+-         */
+-        public void onClientUpdateNowPlayingEntries(long[] playList);
+-
+-        /**
+-         * @hide
+-         */
+-        public void onClientNowPlayingContentChange();
+-
+-        /**
+-         * @hide
+-         */
+-        public void onClientPlayItemResponse(boolean success);
+-
+     };
+ 
+ 
+@@ -1176,14 +1175,18 @@ import java.util.List;
+      */
+     public void onFolderInfoBrowsedPlayer(String stringUri) {
+         Log.d(TAG, "RemoteController: onFolderInfoBrowsedPlayer");
+-        final OnClientUpdateListener l;
++        final OnClientAvrcpUpdateListener l;
+ 
+         synchronized(mInfoLock) {
+-            l = mOnClientUpdateListener;
++            l = mOnClientAvrcpUpdateListener;
+         }
+ 
+-        if (l != null) {
+-            l.onClientFolderInfoBrowsedPlayer(stringUri);
++        try {
++            if (l != null) {
++                l.onClientFolderInfoBrowsedPlayer(stringUri);
++            }
++        } catch (Exception e) {
++            Log.e(TAG, "Error Updating AVRCP on receiving Browsed player response", e);
+         }
+     }
+ 
+@@ -1192,13 +1195,18 @@ import java.util.List;
+      */
+     public void onNowPlayingEntriesUpdate(long[] playList) {
+         Log.d(TAG, "RemoteController: onUpdateNowPlayingEntries");
+-        final OnClientUpdateListener l;
++        final OnClientAvrcpUpdateListener l;
+ 
+         synchronized(mInfoLock) {
+-            l = mOnClientUpdateListener;
++            l = mOnClientAvrcpUpdateListener;
+         }
+-        if (l != null) {
+-            l.onClientUpdateNowPlayingEntries(playList);
++
++        try {
++            if (l != null) {
++                l.onClientUpdateNowPlayingEntries(playList);
++            }
++        } catch (Exception e) {
++            Log.e(TAG, "Error Updating AVRCP on receiving Now Playing Entries", e);
+         }
+     }
+ 
+@@ -1207,14 +1215,18 @@ import java.util.List;
+      */
+     public void onNowPlayingContentChange() {
+         Log.d(TAG, "RemoteController: onNowPlayingContentChange");
+-        final OnClientUpdateListener l;
++        final OnClientAvrcpUpdateListener l;
+ 
+         synchronized(mInfoLock) {
+-            l = mOnClientUpdateListener;
++            l = mOnClientAvrcpUpdateListener;
+         }
+ 
+-        if (l != null) {
+-            l.onClientNowPlayingContentChange();
++        try {
++            if (l != null) {
++                l.onClientNowPlayingContentChange();
++            }
++        } catch (Exception e) {
++            Log.e(TAG, "Error Updating AVRCP on Now Playing Content Change", e);
+         }
+     }
+ 
+@@ -1223,14 +1235,18 @@ import java.util.List;
+      */
+     public void onSetPlayItemResponse(boolean success) {
+         Log.d(TAG, "RemoteController: onPlayItemResponse");
+-        final OnClientUpdateListener l;
++        final OnClientAvrcpUpdateListener l;
+ 
+         synchronized(mInfoLock) {
+-            l = mOnClientUpdateListener;
++            l = mOnClientAvrcpUpdateListener;
+         }
+ 
+-        if (l != null) {
+-            l.onClientPlayItemResponse(success);
++        try {
++            if (l != null) {
++                l.onClientPlayItemResponse(success);
++            }
++        } catch (Exception e) {
++            Log.e(TAG, "Error Updating AVRCP on receiving Play Item response", e);
+         }
+     }
  
 diff --git a/services/core/java/com/android/server/location/GpsLocationProvider.java b/services/core/java/com/android/server/location/GpsLocationProvider.java
 index 4e58c6c..92a74ea 100644
@@ -661,7 +835,7 @@ index 0d3fdf6..7d2fbe1 100644
      {"native_inject_time", "(JJI)V", (void*)android_location_GpsLocationProvider_inject_time},
      {"native_inject_location",
 diff --git a/telephony/java/android/telephony/PhoneNumberUtils.java b/telephony/java/android/telephony/PhoneNumberUtils.java
-index d6d56a1..dbcdd27 100644
+index 3d0a553..8bd60b0 100644
 --- a/telephony/java/android/telephony/PhoneNumberUtils.java
 +++ b/telephony/java/android/telephony/PhoneNumberUtils.java
 @@ -47,6 +47,14 @@ import java.util.Locale;
@@ -804,7 +978,7 @@ index d6d56a1..dbcdd27 100644
          }
  
          Rlog.d(LOG_TAG, "slotId:" + slotId + ", emergencyNumbers: " +  emergencyNumbers);
-@@ -1916,6 +2021,36 @@ public class PhoneNumberUtils
+@@ -1914,6 +2019,36 @@ public class PhoneNumberUtils
              return false;
          }
  
@@ -841,7 +1015,7 @@ index d6d56a1..dbcdd27 100644
          Rlog.d(LOG_TAG, "System property doesn't provide any emergency numbers."
                  + " Use embedded logic for determining ones.");
  
-@@ -2990,4 +3125,149 @@ public class PhoneNumberUtils
+@@ -2961,4 +3096,149 @@ public class PhoneNumberUtils
          return SubscriptionManager.getDefaultVoiceSubId();
      }
      //==== End of utility methods used only in compareStrictly() =====

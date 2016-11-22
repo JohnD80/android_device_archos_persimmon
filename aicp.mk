@@ -2,7 +2,8 @@
 PRODUCT_RELEASE_NAME := persimmon
 
 # Inherit some common CM stuff.
-$(call inherit-product, vendor/cm/config/common_full_phone.mk)
+# $(call inherit-product, vendor/cm/config/common_full_phone.mk)
+$(call inherit-product, vendor/aicp/configs/common.mk)
 
 # Inherit device configuration
 $(call inherit-product, device/archos/persimmon/device_persimmon.mk)
@@ -15,7 +16,7 @@ TARGET_SCREEN_WIDTH := 720
 
 ## Device identifier. This must come after all inclusions
 PRODUCT_DEVICE := persimmon
-PRODUCT_NAME := cm_persimmon
+PRODUCT_NAME := aicp_persimmon
 PRODUCT_BRAND := Archos
 PRODUCT_MODEL := Archos 50 Cobalt
 PRODUCT_MANUFACTURER := Archos

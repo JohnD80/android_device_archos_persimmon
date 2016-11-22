@@ -2,8 +2,8 @@
 cd ../../../..
 cd frameworks/av
 git apply -v --check ../../device/archos/persimmon/patches/framework_av/0001-Patch-for-6735-mtk.patch
-git apply -v --check ../../device/archos/persimmon/patches/framework_av/0002-camera.patch
-git apply -v --check ../../device/archos/persimmon/patches/framework_av/frameworks_av_videorecording_fix.patch
+#git apply -v --check ../../device/archos/persimmon/patches/framework_av/0002-camera.patch
+#git apply -v --check ../../device/archos/persimmon/patches/framework_av/frameworks_av_videorecording_fix.patch
 cd ../..
 cd frameworks/base
 git apply -v --check ../../device/archos/persimmon/patches/framework_base/0001-Patch-for-6735-mtk.patch
