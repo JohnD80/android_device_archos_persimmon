@@ -7,6 +7,7 @@ git apply -v --check ../../device/archos/persimmon/patches/framework_av/0001-Pat
 cd ../..
 cd frameworks/base
 git apply -v --check ../../device/archos/persimmon/patches/framework_base/0001-Patch-for-6735-mtk.patch
+git apply -v --check ../../device/archos/persimmon/patches/framework_base/0002-mt6735_2.patch
 cd ../..
 cd packages/apps/Settings/
 git apply -v --check ../../../device/archos/persimmon/patches/packages_apps_Settings/0001-Patch-for-6735-mtk.patch

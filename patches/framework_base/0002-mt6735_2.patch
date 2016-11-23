@@ -1,0 +1,38 @@
+From 726b53012748e1ddadd565454004bff17fbd75f0 Mon Sep 17 00:00:00 2001
+From: olegsvs <oleg.texet@gmail.com>
+Date: Wed, 23 Nov 2016 14:15:30 +0000
+Subject: [PATCH 2/2] mt6735_2
+
+Change-Id: I4130af1d40ea44b38b954cc9aae26c1197a9d3a8
+---
+ .../src/com/android/keyguard/KeyguardTransportControlView.java    | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java b/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java
+index 900928a..72cfe03 100644
+--- a/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java
++++ b/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java
+@@ -139,16 +139,16 @@ public class KeyguardTransportControlView extends FrameLayout {
+             updateMetadata(metadataEditor);
+         }
+ 
+-        @Override
++//        @Override
+         public void onClientFolderInfoBrowsedPlayer(String stringUri) { }
+ 
+-        @Override
++//        @Override
+         public void onClientUpdateNowPlayingEntries(long[] playList) { }
+ 
+-        @Override
++//        @Override
+         public void onClientNowPlayingContentChange() { }
+ 
+-        @Override
++//        @Override
+         public void onClientPlayItemResponse(boolean success) { }
+     };
+ 
+-- 
+1.9.1
+
