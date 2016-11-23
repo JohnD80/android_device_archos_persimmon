@@ -1,5 +1,5 @@
 SRT
-Device repository for Archos 50 Cobalt CM12.1 6735
+Device repository for Archos 50 Cobalt TipsyOS-5.1 6735
 
 TESTING
 
