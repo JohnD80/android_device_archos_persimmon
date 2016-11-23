@@ -1,0 +1,193 @@
+From 080f43278ba0af0678e4aa3afd1a42902a46c851 Mon Sep 17 00:00:00 2001
+From: olegsvs <oleg.texet@gmail.com>
+Date: Wed, 23 Nov 2016 13:32:14 +0000
+Subject: [PATCH] mt6735
+
+Change-Id: Ieb0d1cc64afbb1361dbc3415c756a2f295da0607
+---
+ ..._android_bluetooth_btservice_AdapterService.cpp |  6 ++---
+ res/values-be/strings.xml                          |  2 --
+ src/com/android/bluetooth/avrcp/Avrcp.java         | 26 ++++++----------------
+ .../bluetooth/btservice/AdapterService.java        |  6 ++---
+ .../android/bluetooth/btservice/AdapterState.java  |  7 +++---
+ 5 files changed, 16 insertions(+), 31 deletions(-)
+
+diff --git a/jni/com_android_bluetooth_btservice_AdapterService.cpp b/jni/com_android_bluetooth_btservice_AdapterService.cpp
+index f2c767f..cb91797 100644
+--- a/jni/com_android_bluetooth_btservice_AdapterService.cpp
++++ b/jni/com_android_bluetooth_btservice_AdapterService.cpp
+@@ -864,13 +864,13 @@ static bool ssrcleanupNative(JNIEnv *env, jobject obj, jboolean cleanup) {
+     return JNI_TRUE;
+ }
+ 
+-static jboolean enableNative(JNIEnv* env, jobject obj, jboolean isGuest) {
++static jboolean enableNative(JNIEnv* env, jobject obj) {
+     ALOGV("%s:",__FUNCTION__);
+ 
+     jboolean result = JNI_FALSE;
+     if (!sBluetoothInterface) return result;
+ 
+-    int ret = sBluetoothInterface->enable(isGuest == JNI_TRUE ? 1 : 0);
++    int ret = sBluetoothInterface->enable();
+     result = (ret == BT_STATUS_SUCCESS) ? JNI_TRUE : JNI_FALSE;
+     return result;
+ }
+@@ -1354,7 +1354,7 @@ static JNINativeMethod sMethods[] = {
+     {"initNative", "()Z", (void *) initNative},
+     {"cleanupNative", "()V", (void*) cleanupNative},
+     {"ssrcleanupNative", "(Z)V", (void*) ssrcleanupNative},
+-    {"enableNative", "(Z)Z",  (void*) enableNative},
++    {"enableNative", "()Z",  (void*) enableNative},
+     {"disableNative", "()Z",  (void*) disableNative},
+     {"setAdapterPropertyNative", "(I[B)Z", (void*) setAdapterPropertyNative},
+     {"getAdapterPropertiesNative", "()Z", (void*) getAdapterPropertiesNative},
+diff --git a/res/values-be/strings.xml b/res/values-be/strings.xml
+index 6764c18..906d653 100644
+--- a/res/values-be/strings.xml
++++ b/res/values-be/strings.xml
+@@ -33,9 +33,7 @@
+   <!-- string for "unknown device" -->
+   <!-- string for "unknown" phone number" -->
+   <!-- string for "the title of airplane mode error" -->
+-  <string name="airplane_error_title">Рэжым лёту</string>
+   <!-- string for "error message in airplane mode" -->
+-  <string name="airplane_error_msg">Нельга выкарыстоўваць Bluetooth падчас рэжыма лёту.</string>
+   <!-- Activate Bluetooth Confirmation Dialog -->
+   <!--Title -->
+   <!--Line 1 -->
+diff --git a/src/com/android/bluetooth/avrcp/Avrcp.java b/src/com/android/bluetooth/avrcp/Avrcp.java
+index af27c3e..cdf26f9 100644
+--- a/src/com/android/bluetooth/avrcp/Avrcp.java
++++ b/src/com/android/bluetooth/avrcp/Avrcp.java
+@@ -79,7 +79,6 @@ public final class Avrcp {
+     private AvrcpMessageHandler mHandler;
+     private RemoteController mRemoteController;
+     private RemoteControllerWeak mRemoteControllerCb;
+-    private AvrcpRemoteControllerWeak mAvrcpRemoteControllerCb;
+     private Metadata mMetadata;
+     private int mTransportControlFlags;
+     private int mCurrentPlayState;
+@@ -375,9 +374,7 @@ public final class Avrcp {
+         }
+         registerMediaPlayers();
+         mRemoteControllerCb = new RemoteControllerWeak(mHandler);
+-        mAvrcpRemoteControllerCb = new AvrcpRemoteControllerWeak(mHandler);
+-        mRemoteController = new RemoteController(mContext, mRemoteControllerCb,
+-                null, mAvrcpRemoteControllerCb);
++        mRemoteController = new RemoteController(mContext, mRemoteControllerCb);
+         mAudioManager.registerRemoteController(mRemoteController);
+         mRemoteController.setSynchronizationMode(RemoteController.POSITION_SYNCHRONIZATION_CHECK);
+     }
+@@ -653,15 +650,6 @@ public final class Avrcp {
+                 handler.obtainMessage(MSG_SET_METADATA, 0, 0, metadataEditor).sendToTarget();
+             }
+         }
+-    }
+-
+-    private static class AvrcpRemoteControllerWeak implements
+-            RemoteController.OnClientAvrcpUpdateListener {
+-        private final WeakReference<Handler> mLocalHandler;
+-
+-        public AvrcpRemoteControllerWeak(Handler handler) {
+-            mLocalHandler = new WeakReference<Handler>(handler);
+-        }
+ 
+         @Override
+         public void onClientFolderInfoBrowsedPlayer(String stringUri) {
+@@ -672,7 +660,7 @@ public final class Avrcp {
+                 if (ExternalPath.length < 4) {
+                     Log.d(TAG, "Wrong entries.");
+                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
+-                            .sendToTarget();
++                                                                        .sendToTarget();
+                     return;
+                 }
+                 Uri uri = Uri.parse(stringUri);
+@@ -688,14 +676,14 @@ public final class Avrcp {
+                 }
+                 mMediaUri = uri;
+                 if (handler != null) {
+-                    // Don't send the complete path to CK as few gets confused by that
++                     // Don't send the complete path to CK as few gets confused by that
+                     // Send only the name of the root folder
+                     handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, NUM_ROOT_ELEMENTS,
+-                            1, SplitPath).sendToTarget();
++                                                1, SplitPath).sendToTarget();
+                 }
+             } else {
+                 handler.obtainMessage(MSG_UPDATE_BROWSED_PLAYER_FOLDER, 0, 0, null)
+-                        .sendToTarget();
++                                                                    .sendToTarget();
+             }
+         }
+ 
+@@ -705,7 +693,7 @@ public final class Avrcp {
+             Handler handler = mLocalHandler.get();
+             if (handler != null) {
+                 handler.obtainMessage(MSG_NOW_PLAYING_ENTRIES_RECEIVED, 0, 0,
+-                        playList).sendToTarget();
++                                                            playList).sendToTarget();
+             }
+         }
+ 
+@@ -724,7 +712,7 @@ public final class Avrcp {
+             Handler handler = mLocalHandler.get();
+             if (handler != null) {
+                 handler.obtainMessage(MSG_PLAY_ITEM_RESPONSE, 0, 0, new Boolean(success))
+-                        .sendToTarget();
++                                                                            .sendToTarget();
+             }
+         }
+     }
+diff --git a/src/com/android/bluetooth/btservice/AdapterService.java b/src/com/android/bluetooth/btservice/AdapterService.java
+index 2b96572..54d883c 100644
+--- a/src/com/android/bluetooth/btservice/AdapterService.java
++++ b/src/com/android/bluetooth/btservice/AdapterService.java
+@@ -1818,8 +1818,8 @@ public class AdapterService extends Service {
+     }
+ 
+      boolean setPairingConfirmation(BluetoothDevice device, boolean accept) {
+-        enforceCallingOrSelfPermission(BLUETOOTH_PRIVILEGED,
+-                                       "Need BLUETOOTH PRIVILEGED permission");
++        enforceCallingOrSelfPermission(BLUETOOTH_ADMIN_PERM,
++                                       "Need BLUETOOTH ADMIN permission");
+         DeviceProperties deviceProp = mRemoteDevices.getDeviceProperties(device);
+         if (deviceProp == null || deviceProp.getBondState() != BluetoothDevice.BOND_BONDING) {
+             return false;
+@@ -2167,7 +2167,7 @@ public class AdapterService extends Service {
+     private native boolean initNative();
+     private native void cleanupNative();
+     /*package*/ native void ssrcleanupNative(boolean cleanup);
+-    /*package*/ native boolean enableNative(boolean startRestricted);
++    /*package*/ native boolean enableNative();
+     /*package*/ native boolean disableNative();
+     /*package*/ native boolean setAdapterPropertyNative(int type, byte[] val);
+     /*package*/ native boolean getAdapterPropertiesNative();
+diff --git a/src/com/android/bluetooth/btservice/AdapterState.java b/src/com/android/bluetooth/btservice/AdapterState.java
+index 8127dd8..3469068 100644
+--- a/src/com/android/bluetooth/btservice/AdapterState.java
++++ b/src/com/android/bluetooth/btservice/AdapterState.java
+@@ -20,7 +20,6 @@ import android.bluetooth.BluetoothAdapter;
+ import android.content.Context;
+ import android.content.Intent;
+ import android.os.Message;
+-import android.os.UserManager;
+ import android.util.Log;
+ 
+ import com.android.internal.util.State;
+@@ -259,9 +258,9 @@ final class AdapterState extends StateMachine {
+                     removeMessages(START_TIMEOUT);
+ 
+                     //Enable
+-                    boolean isGuest = UserManager.get(mAdapterService).isGuestUser();
+-                    if (!adapterService.enableNative(isGuest)) {
+-                        Log.e(TAG, "Error while turning Bluetooth on");
++                    boolean ret = adapterService.enableNative();
++                    if (!ret) {
++                        Log.e(TAG, "Error while turning Bluetooth On");
+                         notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
+                         transitionTo(mOffState);
+                     } else {
+-- 
+1.9.1
+

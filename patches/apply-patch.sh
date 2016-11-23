@@ -11,6 +11,12 @@ cd ../..
 cd packages/apps/Settings/
 git apply -v ../../../device/archos/persimmon/patches/packages_apps_Settings/0001-Patch-for-6735-mtk.patch
 cd ../../..
+cd packages/apps/Bluetooth/
+git apply -v ../../../device/archos/persimmon/patches/packages_apps_Bluetooth/0001-mt6735.patch
+cd ../../..
+cd external/bluetooth/bluedroid/
+git apply -v ../../../device/archos/persimmon/patches/bluedroid/0001-mt6735.patch
+cd ../../..
 cd frameworks/opt/telephony
 git apply -v ../../../device/archos/persimmon/patches/framework_opt_telephony/0001-Patch-for-6735-mtk.patch
 cd ../../..

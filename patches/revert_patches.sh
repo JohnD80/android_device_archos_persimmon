@@ -8,6 +8,7 @@ rm -rf packages/apps/Settings
 rm -rf packages/services/telephony
 rm -rf system/core
 rm -rf system/netd
+rm -rf exernal/bluetooth/bluedroid
 
 repo sync frameworks/av
 repo sync frameworks/base
@@ -18,4 +19,5 @@ repo sync packages/apps/Settings
 repo sync packages/services/telephony
 repo sync system/core
 repo sync system/netd
+repo sync exernal/bluetooth/bluedroid
 
