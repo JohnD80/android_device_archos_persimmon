@@ -19,5 +19,5 @@ repo sync packages/apps/Settings
 repo sync packages/services/telephony
 repo sync system/core
 repo sync system/netd
-repo sync exernal/bluetooth/bluedroid
+repo sync external/bluetooth/bluedroid
 
