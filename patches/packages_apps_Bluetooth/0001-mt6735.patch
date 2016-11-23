@@ -188,6 +188,47 @@ index 8127dd8..3469068 100644
                          notifyAdapterStateChange(BluetoothAdapter.STATE_OFF);
                          transitionTo(mOffState);
                      } else {
+                     
+diff --git a/src/com/android/bluetooth/avrcp/Avrcp.java b/src/com/android/bluetooth/avrcp/Avrcp.java
+index cdf26f9..983e28c 100644
+--- a/src/com/android/bluetooth/avrcp/Avrcp.java
++++ b/src/com/android/bluetooth/avrcp/Avrcp.java
+@@ -651,7 +651,7 @@ public final class Avrcp {
+             }
+         }
+ 
+-        @Override
++//        @Override
+         public void onClientFolderInfoBrowsedPlayer(String stringUri) {
+             Log.v(TAG, "onClientFolderInfoBrowsedPlayer: stringUri: " + stringUri);
+             Handler handler = mLocalHandler.get();
+@@ -687,7 +687,7 @@ public final class Avrcp {
+             }
+         }
+ 
+-        @Override
++//        @Override
+         public void onClientUpdateNowPlayingEntries(long[] playList) {
+             Log.v(TAG, "onClientUpdateNowPlayingEntries");
+             Handler handler = mLocalHandler.get();
+@@ -697,7 +697,7 @@ public final class Avrcp {
+             }
+         }
+ 
+-        @Override
++//        @Override
+         public void onClientNowPlayingContentChange() {
+             Log.v(TAG, "onClientNowPlayingContentChange");
+             Handler handler = mLocalHandler.get();
+@@ -706,7 +706,7 @@ public final class Avrcp {
+             }
+         }
+ 
+-        @Override
++//        @Override
+         public void onClientPlayItemResponse(boolean success) {
+             Log.v(TAG, "onClientPlayItemResponse");
+             Handler handler = mLocalHandler.get(); 
 -- 
 1.9.1
 

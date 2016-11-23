@@ -8,6 +8,32 @@ Change-Id: I4130af1d40ea44b38b954cc9aae26c1197a9d3a8
  .../src/com/android/keyguard/KeyguardTransportControlView.java    | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/packages/SystemUI/src/com/android/systemui/qs/tiles/MusicTile.java b/packages/SystemUI/src/com/android/systemui/qs/tiles/MusicTile.java
+index 2f4790c..aa3e24d 100644
+--- a/packages/SystemUI/src/com/android/systemui/qs/tiles/MusicTile.java
++++ b/packages/SystemUI/src/com/android/systemui/qs/tiles/MusicTile.java
+@@ -205,16 +205,16 @@ public class MusicTile extends QSTile<QSTile.BooleanState> {
+             playbackStateUpdate(state);
+         }
+ 
+-        @Override
++//        @Override
+         public void onClientFolderInfoBrowsedPlayer(String stringUri) { }
+ 
+-        @Override
++//        @Override
+         public void onClientUpdateNowPlayingEntries(long[] playList) { }
+ 
+-        @Override
++//        @Override
+         public void onClientNowPlayingContentChange() { }
+ 
+-        @Override
++//        @Override
+         public void onClientPlayItemResponse(boolean success) { }
+ 
+         @Override
+         
 diff --git a/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java b/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java
 index 900928a..72cfe03 100644
 --- a/packages/Keyguard/src/com/android/keyguard/KeyguardTransportControlView.java
