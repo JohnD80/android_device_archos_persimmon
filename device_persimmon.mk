@@ -92,8 +92,6 @@ PRODUCT_PACKAGES += \
     libperfservicenative \
     libcurl
 
-PRODUCT_PACKAGES += archospshelper
-
 PRODUCT_PACKAGES += power.mt6735
 
 # Wifi
